@@ -25,7 +25,12 @@ fun buildMinuteVersionCode(): Int {
     return (t.year - 2026) * 100_000_000 + t.monthValue * 1_000_000 + t.dayOfMonth * 10_000 + t.hour * 100 + t.minute
 }
 
+// Opt-in parallel install for personal testing; never changes the production package.
+val testInstall = providers.gradleProperty("dshGoTestInstall").orNull == "true"
+val installPackage = "io.github.ccch1mneyyy.dsh_app" + if (testInstall) ".dev" else ""
+
 android {
+    buildFeatures { buildConfig = true }
     namespace = "io.github.ccch1mneyyy.dsh_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
@@ -37,6 +42,9 @@ android {
 
     defaultConfig {
         applicationId = "io.github.ccch1mneyyy.dsh_app"
+        if (testInstall) applicationIdSuffix = ".dev"
+        manifestPlaceholders["dshGoAppLabel"] = if (testInstall) "DSH Go Dev" else "DSH Go"
+        resValue("string", "dsh_install_package", installPackage)
         // java.nio.file (symlinks while unpacking the rootfs) needs API 26.
         minSdk = 26
         // Target 28 like Termux, so the API 29+ exec restriction on app-private
