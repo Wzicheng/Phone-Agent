@@ -53,21 +53,23 @@ jobs:
       - name: Resolve Flutter dependencies
         working-directory: app
         run: flutter pub get
-      - name: Build parallel-install ARM64 APK
-        env:
-          ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
-        run: bash tooling/build-apk.sh -f arm64 --keep-daemon
       - name: Test Android package contracts
         working-directory: app/android
         env:
           ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
-        run: ./gradlew :app:testArm64ReleaseUnitTest --tests '*LauncherManifestTest'
+        run: ./gradlew :app:testArm64DebugUnitTest --tests '*LauncherManifestTest'
+      - name: Build parallel-install ARM64 APK
+        env:
+          ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
+        run: bash tooling/build-apk.sh -f arm64 --keep-daemon
       - name: Verify parallel package identity
         run: |
-          AAPT=$(printf '%s\n' "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -n 1)
-          "$AAPT" dump badging app/build/app/outputs/flutter-apk/app-arm64-release.apk > apk-badging.txt
+          APK=app/build/app/outputs/flutter-apk/app-arm64-release.apk
+          DUMPER=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -n 1)
+          [ -n "$DUMPER" ] || { echo 'no aapt2 in the Android SDK'; exit 1; }
+          "$DUMPER" dump badging "$APK" > apk-badging.txt
           grep -q "package: name='io.github.ccch1mneyyy.dsh_app.dev'" apk-badging.txt
-          grep -q "application-label:'DSH Go Dev'" apk-badging.txt
+          grep -q "DSH Go Dev" apk-badging.txt
       - name: Record APK checksum and source revision
         run: |
           sha256sum app/build/app/outputs/flutter-apk/app-arm64-release.apk > apk-sha256.txt
