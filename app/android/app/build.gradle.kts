@@ -30,7 +30,10 @@ val testInstall = providers.gradleProperty("dshGoTestInstall").orNull == "true"
 val installPackage = "io.github.ccch1mneyyy.dsh_app" + if (testInstall) ".dev" else ""
 
 android {
-    buildFeatures { buildConfig = true }
+    buildFeatures {
+        buildConfig = true
+        resValues = true
+    }
     namespace = "io.github.ccch1mneyyy.dsh_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
