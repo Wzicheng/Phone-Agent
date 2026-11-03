@@ -53,15 +53,15 @@ jobs:
       - name: Resolve Flutter dependencies
         working-directory: app
         run: flutter pub get
+      - name: Build parallel-install ARM64 APK
+        env:
+          ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
+        run: bash tooling/build-apk.sh -f arm64 --keep-daemon
       - name: Test Android package contracts
         working-directory: app/android
         env:
           ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
         run: ./gradlew :app:testArm64DebugUnitTest --tests '*LauncherManifestTest'
-      - name: Build parallel-install ARM64 APK
-        env:
-          ORG_GRADLE_PROJECT_dshGoTestInstall: 'true'
-        run: bash tooling/build-apk.sh -f arm64 --keep-daemon
       - name: Verify parallel package identity
         run: |
           APK=app/build/app/outputs/flutter-apk/app-arm64-release.apk
